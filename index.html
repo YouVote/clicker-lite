@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta content="text/html;charset=utf-8" http-equiv="Content-Type">
+		<meta content="utf-8" http-equiv="encoding">
+		<title>YouVote Lite</title>
+		<!-- load config here -->
+		<script src="config.js"></script>
+		<script>
+			var paginator=new (function(){
+				var domArr={}
+				this.addDom=function(domName){
+					domArr[domName]={
+						dom:document.getElementById(domName),
+						// orig:document.getElementById(domName).style.display
+					};
+				}
+				this.setDom=function(setDomName){
+					for(var domName in domArr){
+						if(domName==setDomName){
+							// domArr[domName]["dom"].style.display=domArr[domName]["orig"];
+							domArr[domName]["dom"].style.visibility="visible";
+						} else {
+							//domArr[domName]["dom"].style.display="none";
+							domArr[domName]["dom"].style.visibility="hidden";
+						}
+					}
+				}
+			})()
+		</script>
+		<script data-main="lite-main" src="require.js"></script>
+		<style>
+			html, body{
+				height:100%;
+				margin:0px;
+			}
+			/* Make scrollbars less intrusive (in case not really needed), but still allow scroll (if needed). 
+			   (e.g. if height renders a few pixels off, which occurs frequently.) */
+			body::-webkit-scrollbar {
+				width: 5px;
+			}
+			body::-webkit-scrollbar-track {
+				background: #fff; 
+			}
+			body::-webkit-scrollbar-thumb {
+				background: #fff; 
+			}
+			body::-webkit-scrollbar-thumb:hover {
+				background: #eee; 
+			}
+			.page{
+				margin:0px;	height:100%;width:100%;	display:block;position:absolute;
+			}
+			.youvote{
+				font-family: "Trebuchet MS","Lucida Grande","Lucida Sans Unicode","Lucida Sans",Tahoma,sans-serif; 
+				font-weight:bold;
+				padding:0px;
+				/* prevents text selection */
+				-webkit-user-select: none;  /* Chrome all / Safari all */
+				-moz-user-select: none;     /* Firefox all */
+				-ms-user-select: none;      /* IE 10+ */
+				user-select: none;          /* Likely future */  
+				cursor:default;
+			}
+			.youvote-line{
+				font-size:7px;text-align:center;background-color:white;
+			}
+			.you{
+				color:#ff0000;
+			}
+			.vote{
+				color:rgb(0,176,240);
+			}
+			.lesson-side{
+				height:100%;width:250px;
+				border-right:1px solid #999;
+				border-left:1px solid #999;
+				padding:0;overflow:hidden;
+				background-color:#eee;
+				position: absolute; top:0px;left:0px;
+			}
+			.lesson-main{
+				margin-left:250px; width:auto; height:100%; overflow:hidden;
+			}
+			.nav-container{
+				background-color: #fff;
+				padding:12px;
+			}
+		</style>
+	</head>
+	<body>
+		<div class="page" id="page-run">
+			<section class="lesson-side" >
+				<div class="youvote youvote-line">
+					<span class="you">You</span><span class="vote">Vote</span><span class="you">You</span><span class="vote">Vote</span><span class="you">You</span><span class="vote">Vote</span><span class="you">You</span><span class="vote">Vote</span><span class="you">You</span><span class="vote">Vote</span><span class="you">You</span><span class="vote">Vote</span><span class="you">You</span><span class="vote">Vote</span><span class="you">You</span><span class="vote">Vote</span><span class="you">You</span><span class="vote">Vote</span>
+				</div>
+				<div id="socket-info" class="info-bar"></div>
+				<div class="youvote youvote-line">
+					<span class="you">You</span><span class="vote">Vote</span><span class="you">You</span><span class="vote">Vote</span><span class="you">You</span><span class="vote">Vote</span><span class="you">You</span><span class="vote">Vote</span><span class="you">You</span><span class="vote">Vote</span><span class="you">You</span><span class="vote">Vote</span><span class="you">You</span><span class="vote">Vote</span><span class="you">You</span><span class="vote">Vote</span><span class="you">You</span><span class="vote">Vote</span>
+				</div>
+				<div class="nav-container">
+					<button id="editBtn" class="btn btn-default btn-lg btn-block"> 
+						<span class="glyphicon glyphicon-pencil"></span> Edit </button>
+				</div>
+				<div id='student-box' style="background-color:#dddddd;padding:2px 2px;">
+				</div>
+			</section>
+			<section class="lesson-main" style="display:flex; flex-flow:column;height:100%;">
+			<!-- abstracting this start -->
+				<div style="padding:20px; display:flex; flex-flow:row;">
+						<div id='qnStem' style=" display: inline-block; line-height:150%; margin:30px; font-size:25px;">Stem</div>
+						<div id='qnOpts' style="display: inline-block; margin:30px; font-size:25px;">Opts</div> 
+				</div>
+				<div style="width:0px;height:0px;overflow:visible;">
+					<div id="respDiv" style="position:absolute;"></div>
+				</div>
+				<div id="respGhost" style="flex-grow:1;"></div>
+			<!-- abstracting this end -->
+			</section>
+		</div>
+		<div class="page" id="page-edit">
+			<section class="lesson-side" >
+				<div class="youvote youvote-line">
+					<span class="you">You</span><span class="vote">Vote</span><span class="you">You</span><span class="vote">Vote</span><span class="you">You</span><span class="vote">Vote</span><span class="you">You</span><span class="vote">Vote</span><span class="you">You</span><span class="vote">Vote</span><span class="you">You</span><span class="vote">Vote</span><span class="you">You</span><span class="vote">Vote</span><span class="you">You</span><span class="vote">Vote</span><span class="you">You</span><span class="vote">Vote</span>
+				</div>
+				<div id="edit-info" class="info-bar"> Editor Mode </div>
+				<div class="youvote youvote-line">
+					<span class="you">You</span><span class="vote">Vote</span><span class="you">You</span><span class="vote">Vote</span><span class="you">You</span><span class="vote">Vote</span><span class="you">You</span><span class="vote">Vote</span><span class="you">You</span><span class="vote">Vote</span><span class="you">You</span><span class="vote">Vote</span><span class="you">You</span><span class="vote">Vote</span><span class="you">You</span><span class="vote">Vote</span><span class="you">You</span><span class="vote">Vote</span>
+				</div>
+				<div class="nav-container">
+					<button id="runBtn" class="btn btn-default btn-lg btn-block"> 
+						<span class="glyphicon glyphicon-play"></span> Run </button>
+				</div>
+			</section>
+			<section id="edit" class="lesson-main" style="padding:10px;display:flex; flex-flow:column;flex-grow:1;">
+				<textarea id="editQnStem" id="modParams" class="form-control" style="margin-bottom:3px; resize:vertical; font-size: 20px; line-height:150%; border-radius:6px;" rows=5 placeholder="Enter Question"></textarea> 
+				<div id="lesson" class="input-group input-group-lg" >
+					<label class="input-group-btn">
+						<button class="btn btn-default dropdown-toggle" type="button"  data-toggle="dropdown" aria-haspopup="true" aria-expanded="true" style="width:100px;">
+							<span id="editModName">Module</span>
+							<span class="caret"></span>
+						</button>	
+						<ul class="dropdown-menu" id="editModMenu" aria-labelledby="modsMenu">
+						</ul>
+					</label>
+					<input type="text" id="editModParams" class="form-control" placeholder="Params" style="font-family:'Lucida Console', Monaco, monospace;" />
+				</div>
+					<input id="editStdErr" style="display:none;" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" readonly="readonly"></input>
+					<input id="editJsonRep" style="display:none;" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" readonly="readonly"></input>
+			</section>
+		</div>
+		<script>
+			paginator.addDom("page-run")		
+			paginator.addDom("page-edit")
+			paginator.setDom("page-edit");
+		</script>
+	</body>
+</html>
