@@ -26,10 +26,63 @@ require(['jquery'],function(){
 })
 
 // require(["webKernel","qneditor","stdstream","studentview"],
-require(["webKernel","authKernel","stdstream","studentview"],
-function(webKernel,authKernel,stdStreamEngine,studentViewEngine){
+require(["webKernel","authKernel","stdstream","studentview","litectrl","socketinfo"],
+function(webKernel,authKernel,stdStreamEngine,studentViewEngine,liteCtrlEngine,socketInfoEngine){
 	// the entire state of the question
 	var qnStem=""; var modName="null"; var modParams="\"\"";
+
+	var interactManager={
+		connect:function(){
+			// used socketInfoObj, studentViewObj, youVote
+			socketInfoObj.connecting();
+			youVote=new webKernel("#qnStem","#qnOpts","#respDiv","#respGhost","head");
+			// youVote.setKernelParam("onConnectPass",socketInfoObj.success);
+			// youVote.setKernelParam("onConnectFail",socketInfoObj.fail);
+			youVote.setKernelParam("onConnectPass",interactManager.connectPass);
+			youVote.setKernelParam("onConnectFail",interactManager.connectPass);
+			youVote.setKernelParam("viewAddStudent",studentViewObj.addStudent);
+			youVote.setKernelParam("viewMarkReconnected",studentViewObj.markReconnected);
+			youVote.setKernelParam("viewMarkDisconnected",studentViewObj.markDisconnected);
+			youVote.setKernelParam("viewMarkAnswered",studentViewObj.markAnswered);
+			youVote.setKernelParam("viewRestorePrevAnswered",studentViewObj.resetAnswered);
+			youVote.setKernelParam("yvProdBaseAddr",config.baseProdUrl);
+			youVote.connect();
+		},
+		connectPass:function(lessonId){
+			socketInfoObj.success(lessonId);
+		},
+		connectFail:function(err){
+			socketInfoObj.fail(err);
+		},
+		// called in liteCtrlObj
+		getQnSpec:function(){
+			return {
+				qnStem:qnEditObj.getQnStem(),
+				modName:qnEditObj.getModName(),
+				paramString:qnEditObj.getModParams()
+			};
+		},
+		pushEditErrMsg:function(errMsg){
+			stdStreamObj.pushErrorMsg(errMsg);
+		},
+		execRun:function(qnStem,modName,modParams){
+			// used youVote, paginator, history, stdStreamObj
+			var qnSpec={"qnStem":qnStem,"modName":modName,"modParams":modParams};
+			history.pushState({},"", "index.html?spec="+encodeURIComponent(JSON.stringify(qnSpec)));
+			youVote.execQn(qnStem,modName,modParams,{});
+			paginator.setDom("page-run");
+			stdStreamObj.reset();
+		},
+		execEdit:function(){
+			stdStreamObj.putJson();
+			if(modName!=null){
+				var qnSpec={"qnStem":qnStem,"modName":modName,"modParams":modParams};
+				stdStreamObj.putJson(qnSpec);
+			}
+			paginator.setDom("page-edit");
+		}
+	}
+
 	var studentViewObj=new studentViewEngine(
 		document.getElementById("student-box")
 	);
@@ -59,7 +112,7 @@ function(webKernel,authKernel,stdStreamEngine,studentViewEngine){
 				if("modParams" in qnSpec)
 					modParams=qnSpec["modParams"];
 
-				// push into modEditor
+				// push into qnEditObj
 				qnEditObj.putQnStem(qnStem)
 				qnEditObj.putModName(modName);
 				qnEditObj.putModParams(JSON.stringify(modParams));
@@ -73,71 +126,88 @@ function(webKernel,authKernel,stdStreamEngine,studentViewEngine){
 		}
 	}
 
-	var liteCtrlObj=new (function(editBtn,runBtn){
-		runBtn.onclick=function(){
-			qnStem=qnEditObj.getQnStem();
-			modName=qnEditObj.getModName();
-			paramString=qnEditObj.getModParams();
-			try{
-				params=JSON.parse(paramString);
-				// todo: possibly check with mods if parameters make sense. 
-				// RUN! 
-				var qnSpec={"qnStem":qnStem,"modName":modName,"modParams":params};
-				history.pushState({},"", "index.html?spec="+encodeURIComponent(JSON.stringify(qnSpec)));
-				youVote.execQn(qnStem,modName,params,{});
-				paginator.setDom("page-run");
-				stdStreamObj.reset();
-			}catch(e){
-				stdStreamObj.pushErrorMsg("[parsing Params] "+e);
-			}
-		}
-		editBtn.onclick=function(){
-			stdStreamObj.putJson();
-			if(modName!=null){
-				var qnSpec={"qnStem":qnStem,"modName":modName,"modParams":params};
-				stdStreamObj.putJson(qnSpec);
-			}
-			paginator.setDom("page-edit");
-			// fill jsonRepDom stream if previously defined. 
-		}
-	})(
+	// var liteCtrlObj=new (function(interactManager,editBtn,runBtn){
+	// 	// external dependencies youVote object, qnEditObj, paginator, history, stdStreamObj
+	// 	runBtn.onclick=function(){
+	// 		// prepare to run...  
+	// 		// get existing params, check, halt and feedback if error. 
+	// 		// qnStem=qnEditObj.getQnStem();
+	// 		// modName=qnEditObj.getModName();
+	// 		// paramString=qnEditObj.getModParams();
+	// 		var newQnSpec=interactManager.getQnSpec();
+	// 		// todo: possibly more thorough check if mod exists,
+	// 		// and validity of parameters with mod
+	// 		try{
+	// 			var modParams=JSON.parse(newQnSpec.paramString);
+	// 			// RUN! 
+	// 			// var qnSpec={"qnStem":qnStem,"modName":modName,"modParams":params};
+	// 			// history.pushState({},"", "index.html?spec="+encodeURIComponent(JSON.stringify(qnSpec)));
+	// 			// youVote.execQn(qnStem,modName,params,{});
+	// 			// paginator.setDom("page-run");
+	// 			// stdStreamObj.reset();
+	// 			interactManager.execRun(qnStem,modName,modParams);
+	// 		}catch(e){
+	// 			// stdStreamObj.pushErrorMsg("[parsing Params] "+e);
+	// 			interactManager.pushEditErrMsg("[parsing Params] "+e);
+	// 		}
+	// 	}
+	// 	editBtn.onclick=function(){
+	// 		// stdStreamObj.putJson();
+	// 		// if(modName!=null){
+	// 		// 	var qnSpec={"qnStem":qnStem,"modName":modName,"modParams":modParams};
+	// 		// 	stdStreamObj.putJson(qnSpec);
+	// 		// }
+	// 		// paginator.setDom("page-edit");
+	// 		interactManager.execEdit();
+	// 	}
+	// })(
+	// 	interactManager,
+	// 	document.getElementById("editBtn"),
+	// 	document.getElementById("runBtn")
+	// );
+	var liteCtrlObj=new liteCtrlEngine(
+		interactManager,
 		document.getElementById("editBtn"),
 		document.getElementById("runBtn")
 	);
+	// var socketInfoObj=new (function(interactManager,infoDom){
+	// 	// external dependencies: connect() function 
+	// 	this.success=function(lessonId){
+	// 		infoDom.innerHTML=lessonId;
+	// 		infoDom.classList.add("lesson-id");
+	// 		infoDom.classList.remove("connect-msg");
+	// 		infoDom.onclick=function(){};
+	// 	}
+	// 	this.fail=function(err){
+	// 		console.log("failed")
+	// 		infoDom.innerHTML="Connection Failed: <br/> Click to try again.";
+	// 		infoDom.onclick=function(){
+	// 			// connect();
+	// 			interactManager.connect();
+	// 		};
+	// 	}
+	// 	this.connecting=function(){
+	// 		infoDom.innerHTML="Connecting... ";
+	// 		infoDom.classList.remove("lesson-id");
+	// 		infoDom.classList.add("connect-msg");
+	// 	}
+	// })(interactManager,document.getElementById("socket-info"));
 
-	var socketInfoObj=new (function(infoDom){
-		this.success=function(lessonId){
-			infoDom.innerHTML=lessonId;
-			infoDom.classList.add("lesson-id");
-			infoDom.classList.remove("connect-msg");
-			infoDom.onclick=function(){};
-		}
-		this.fail=function(err){
-			console.log("failed")
-			infoDom.innerHTML="Connection Failed: <br/> Click to try again.";
-			infoDom.onclick=function(){
-				connect();
-			};
-		}
-		this.connecting=function(){
-			infoDom.innerHTML="Connecting... ";
-			infoDom.classList.remove("lesson-id");
-			infoDom.classList.add("connect-msg");
-		}
-	})(document.getElementById("socket-info"));
+	var socketInfoObj=new socketInfoEngine(interactManager,document.getElementById("socket-info"));
 
-	function connect(){
-		socketInfoObj.connecting();
-		youVote=new webKernel("#qnStem","#qnOpts","#respDiv","#respGhost","head");
-		youVote.setKernelParam("onConnectPass",socketInfoObj.success);
-		youVote.setKernelParam("onConnectFail",socketInfoObj.fail);
-		youVote.setKernelParam("viewAddStudent",studentViewObj.addStudent);
-		youVote.setKernelParam("viewMarkReconnected",studentViewObj.markReconnected);
-		youVote.setKernelParam("viewMarkDisconnected",studentViewObj.markDisconnected);
-		youVote.setKernelParam("viewMarkAnswered",studentViewObj.markAnswered);
-		youVote.setKernelParam("viewRestorePrevAnswered",studentViewObj.resetAnswered);
-		youVote.setKernelParam("yvProdBaseAddr",config.baseProdUrl);
-		youVote.connect();
-	}
-	connect();
+	// function connect(){
+	// 	// external dependencies socketInfoObj, youvote
+	// 	socketInfoObj.connecting();
+	// 	youVote=new webKernel("#qnStem","#qnOpts","#respDiv","#respGhost","head");
+	// 	youVote.setKernelParam("onConnectPass",socketInfoObj.success);
+	// 	youVote.setKernelParam("onConnectFail",socketInfoObj.fail);
+	// 	youVote.setKernelParam("viewAddStudent",studentViewObj.addStudent);
+	// 	youVote.setKernelParam("viewMarkReconnected",studentViewObj.markReconnected);
+	// 	youVote.setKernelParam("viewMarkDisconnected",studentViewObj.markDisconnected);
+	// 	youVote.setKernelParam("viewMarkAnswered",studentViewObj.markAnswered);
+	// 	youVote.setKernelParam("viewRestorePrevAnswered",studentViewObj.resetAnswered);
+	// 	youVote.setKernelParam("yvProdBaseAddr",config.baseProdUrl);
+	// 	youVote.connect();
+	// }
+	interactManager.connect();
 })
