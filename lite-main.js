@@ -3,12 +3,13 @@ require.config({ urlArgs: "v=" +  (new Date()).getTime() });
 require.config({
 	packages:[
 		{"name":"webKernel","location":"../yvWebKernel"},
+		{"name":"authKernel","location":"../yvAuthKernel"},
 		{"name":"ctype","location":config.baseProdUrl+"ctype/"},
 		{"name":"async","location":config.baseProdUrl+"async/"},
-		{"name":"modindex","location":config.baseProdUrl+"mods/"}
+		{"name":"modindex","location":config.baseProdUrl+"mods/"} // needed by authKernel
 	],
 	paths:{
-		"socket-router":"https://youvote.github.io/socket-router/main",
+		"socket-router":"https://youvote.github.io/socket-router/main", // needed by webKernel
 		"jquery":"https://cdnjs.cloudflare.com/ajax/libs/jquery/3.2.1/jquery.min",
 		"bootstrap":"https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/3.3.7/js/bootstrap.min",
 		"d3js":"https://cdnjs.cloudflare.com/ajax/libs/d3/4.2.0/d3.min",
@@ -24,14 +25,15 @@ require(['jquery'],function(){
 	$('head').append('<link rel="stylesheet" type="text/css" href="lite.css">');
 })
 
-require(["webKernel","qneditor","stdstream","studentview"],
-function(webKernel,qnEditEngine,stdStreamEngine,studentViewEngine){
+// require(["webKernel","qneditor","stdstream","studentview"],
+require(["webKernel","authKernel","stdstream","studentview"],
+function(webKernel,authKernel,stdStreamEngine,studentViewEngine){
 	// the entire state of the question
 	var qnStem=""; var modName="null"; var modParams="\"\"";
 	var studentViewObj=new studentViewEngine(
 		document.getElementById("student-box")
 	);
-	var qnEditObj=new qnEditEngine(
+	var qnEditObj=new authKernel(
 		document.getElementById("editQnStem"),
 		document.getElementById("editModName"),
 		document.getElementById("editModMenu"),
