@@ -25,8 +25,9 @@ require(['jquery'],function(){
 	$('head').append('<link rel="stylesheet" type="text/css" href="lite.css">');
 })
 
-require(["webKernel","authKernel","stdstream","studentview","litectrl","socketinfo","pagestate"],
-function(webKernel,authKernel,stdStreamEngine,studentViewEngine,liteCtrlEngine,socketInfoEngine,pageStateEngine){
+require(["webKernel","authKernel","stdstream","studentview","litectrl","socketinfo","urlstate"],
+function(webKernel,authKernel,stdStreamEngine,studentViewEngine,liteCtrlEngine,socketInfoEngine,urlStateEngine){
+	// there are several different qnSpec states here... think them through...  
 	// the entire state of the question
 	var currQnSpec=new (function(){
 		var qnSpec={qnStem:"", modName:"null", modParams:"\"\""};
@@ -49,6 +50,13 @@ function(webKernel,authKernel,stdStreamEngine,studentViewEngine,liteCtrlEngine,s
 	var youVote, studentViewObj, qnEditObj, stdStreamObj, liteCtrlObj, socketInfoObj, pageStateObj;
 
 	var interactManager={
+		init:function(){
+			interactManager.connect();
+			var urlQnSpec=interactManager.pullUrlState();
+			if(urlQnSpec.modName!="null"){
+				interactManager.execRun(urlQnSpec.qnStem,urlQnSpec.modName,urlQnSpec.modParams);
+			}
+		},
 		connect:function(){
 			// used socketInfoObj, studentViewObj, youVote
 			socketInfoObj.connecting();
@@ -78,9 +86,6 @@ function(webKernel,authKernel,stdStreamEngine,studentViewEngine,liteCtrlEngine,s
 			}
 		},
 		putCurrSpec:function(newQnStem,newModName,newModParams){
-			// currQnStem=newQnStem; 
-			// currModName=newModName; 
-			// currModParams=newModParams;
 			currQnSpec.set("qnStem",newQnStem);
 			currQnSpec.set("modName",newModName);
 			currQnSpec.set("modParams",newModParams);
@@ -96,8 +101,11 @@ function(webKernel,authKernel,stdStreamEngine,studentViewEngine,liteCtrlEngine,s
 			stdStreamObj.pushErrorMsg(err);
 		},
 
-		pushPageState(newQnStem,newModName,newModParams){
-			pageStateObj.putState(newQnStem,newModName,newModParams);
+		pushUrlState(newQnStem,newModName,newModParams){
+			urlStateObj.putState(newQnStem,newModName,newModParams);
+		},
+		pullUrlState(){
+			return urlStateObj.getState();
 		},
 
 		// called in liteCtrlObj
@@ -146,14 +154,16 @@ function(webKernel,authKernel,stdStreamEngine,studentViewEngine,liteCtrlEngine,s
 		interactManager,
 		document.getElementById("socket-info")
 	);
-	pageStateObj=new pageStateEngine(
+	urlStateObj=new urlStateEngine(
 		interactManager
 	);
 
-	// initialize
-	interactManager.connect();
-	var urlQnSpec=pageStateObj.getState();
-	if(urlQnSpec.modName!="null"){
-		interactManager.execRun(urlQnSpec.qnStem,urlQnSpec.modName,urlQnSpec.modParams);
-	}
+	// // initialize
+	// interactManager.connect();
+	// // var urlQnSpec=urlStateObj.getState();
+	// var urlQnSpec=interactManager.pullUrlState();
+	// if(urlQnSpec.modName!="null"){
+	// 	interactManager.execRun(urlQnSpec.qnStem,urlQnSpec.modName,urlQnSpec.modParams);
+	// }
+	interactManager.init();
 })

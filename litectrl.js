@@ -10,7 +10,7 @@ define([],function(){
 				var modParams=JSON.parse(newQnSpec.paramString);
 				// RUN! 
 				interactManager.execRun(newQnSpec.qnStem,newQnSpec.modName,modParams);
-				interactManager.pushPageState(newQnSpec.qnStem,newQnSpec.modName,modParams);
+				interactManager.pushUrlState(newQnSpec.qnStem,newQnSpec.modName,modParams);
 				interactManager.printClear();
 			}catch(e){
 				interactManager.printErrMsg("[parsing Params] "+e);
