@@ -18,7 +18,11 @@ define([],function(){
 				// youVote.execQn(qnStem,modName,params,{});
 				// paginator.setDom("page-run");
 				// stdStreamObj.reset();
-				interactManager.execRun(qnStem,modName,modParams);
+				interactManager.execRun(
+					newQnSpec.qnStem,
+					newQnSpec.modName,
+					modParams
+				);
 			}catch(e){
 				// stdStreamObj.pushErrorMsg("[parsing Params] "+e);
 				interactManager.pushEditErrMsg("[parsing Params] "+e);
