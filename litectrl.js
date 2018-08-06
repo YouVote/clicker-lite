@@ -18,14 +18,12 @@ define([],function(){
 				// youVote.execQn(qnStem,modName,params,{});
 				// paginator.setDom("page-run");
 				// stdStreamObj.reset();
-				interactManager.execRun(
-					newQnSpec.qnStem,
-					newQnSpec.modName,
-					modParams
-				);
+				interactManager.execRun(newQnSpec.qnStem,newQnSpec.modName,modParams);
+				interactManager.pushPageState(newQnSpec.qnStem,newQnSpec.modName,modParams);
+				interactManager.printClear();
 			}catch(e){
 				// stdStreamObj.pushErrorMsg("[parsing Params] "+e);
-				interactManager.pushEditErrMsg("[parsing Params] "+e);
+				interactManager.printErrMsg("[parsing Params] "+e);
 			}
 		}
 		editBtn.onclick=function(){
@@ -35,7 +33,13 @@ define([],function(){
 			// 	stdStreamObj.putJson(qnSpec);
 			// }
 			// paginator.setDom("page-edit");
-			interactManager.execEdit();
+			// get curr state
+			var currQnSpec=interactManager.getCurrSpec();
+			interactManager.printClear();
+			if(currQnSpec.ModName!=null){
+				interactManager.printJsonStr(currQnSpec);
+			}
+			interactManager.execEdit(currQnSpec.qnStem,currQnSpec.modName,currQnSpec.modParams);
 		}
 	}
 })

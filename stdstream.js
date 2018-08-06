@@ -4,7 +4,7 @@ define([], function(){
 			jsonRepDom.select();
 			document.execCommand('copy');
 		}
-		this.reset=function(){
+		this.clear=function(){
 			jsonRepDom.style.display="none";
 			stdErrDom.style.display="none";
 		}

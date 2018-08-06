@@ -12,6 +12,7 @@ define([],function(){
 			infoDom.innerHTML="Connection Failed: <br/> Click to try again.";
 			infoDom.onclick=function(){
 				// connect();
+				console.log("trying to connect again")
 				interactManager.connect();
 			};
 		}

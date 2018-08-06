@@ -4,19 +4,19 @@ define([],function(interactManager){
 		this.getState=function(){
 			var url = new URL(location.href);
 			var qnSpecUriJson = url.searchParams.get("spec");
-			var getQnStem, getModName, getModParams;
+			var getQnStem="", getModName="null", getModParams="\"\"";
 			// try to extract uridecode, json parse, qnStem, modName, modParams, fill in where successful.
 			if(qnSpecUriJson!=null){
 				try{
 					var jsonString=decodeURIComponent(qnSpecUriJson);
 					try{
-						var qnSpec=JSON.parse(jsonString);
-						if("qnStem" in qnSpec)
-							getQnStem=qnSpec["qnStem"];
-						if("modName" in qnSpec)
-							getModName=qnSpec["modName"];
-						if("modParams" in qnSpec)
-							getModParams=qnSpec["modParams"];
+						var getQnSpec=JSON.parse(jsonString);
+						if("qnStem" in getQnSpec)
+							getQnStem=getQnSpec["qnStem"];
+						if("modName" in getQnSpec)
+							getModName=getQnSpec["modName"];
+						if("modParams" in getQnSpec)
+							getModParams=getQnSpec["modParams"];
 					}catch(e){
 						// stdStreamObj.pushErrorMsg("[parsing JSON] "+e);
 						interactManager.printErrMsg("[parsing JSON] "+e);

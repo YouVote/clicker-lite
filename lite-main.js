@@ -30,14 +30,14 @@ function(webKernel,authKernel,stdStreamEngine,studentViewEngine,liteCtrlEngine,s
 	// the entire state of the question
 	var currQnStem=""; var currModName="null"; var currModParams="\"\"";
 	var studentViewObj, qnEditObj, stdStreamObj, liteCtrlObj, socketInfoObj, pageStateObj;
-	
+
 	var interactManager={
 		connect:function(){
 			// used socketInfoObj, studentViewObj, youVote
 			socketInfoObj.connecting();
 			youVote=new webKernel("#qnStem","#qnOpts","#respDiv","#respGhost","head");
 			youVote.setKernelParam("onConnectPass",interactManager.connectPass);
-			youVote.setKernelParam("onConnectFail",interactManager.connectPass);
+			youVote.setKernelParam("onConnectFail",interactManager.connectFail);
 			youVote.setKernelParam("viewAddStudent",studentViewObj.addStudent);
 			youVote.setKernelParam("viewMarkReconnected",studentViewObj.markReconnected);
 			youVote.setKernelParam("viewMarkDisconnected",studentViewObj.markDisconnected);
@@ -53,12 +53,28 @@ function(webKernel,authKernel,stdStreamEngine,studentViewEngine,liteCtrlEngine,s
 			socketInfoObj.fail(err);
 		},
 
-		printJsonStr:function(str){
+		getCurrSpec:function(){
+			return {
+				qnStem:currQnStem,
+				modName:currModName,
+				modParams:currModParams
+			}
+		},
 
+		printClear:function(){
+			stdStreamObj.clear();
+		},
+		printJsonStr:function(str){
+			stdStreamObj.putJson(str);
 		},
 		printErrMsg:function(err){
 			stdStreamObj.pushErrorMsg(err);
 		},
+
+		pushPageState(newQnStem,newModName,newModParams){
+			pageStateObj.putState(newQnStem,newModName,newModParams);
+		},
+
 		// called in liteCtrlObj
 		getQnSpec:function(){
 			return {
@@ -67,24 +83,29 @@ function(webKernel,authKernel,stdStreamEngine,studentViewEngine,liteCtrlEngine,s
 				paramString:qnEditObj.getModParams()
 			};
 		},
-		pushEditErrMsg:function(errMsg){
-			stdStreamObj.pushErrorMsg(errMsg);
-		},
+		// pushEditErrMsg:function(errMsg){
+		// 	stdStreamObj.pushErrorMsg(errMsg);
+		// },
 		execRun:function(newQnStem,newModName,newModParams){
 			// used youVote, paginator, history, stdStreamObj
 			currQnStem=newQnStem; currModName=newModName; currModParams=newModParams;
-			// store page state.
-			pageStateObj.putState({"qnStem":currQnStem,"modName":currModName,"modParams":currModParams})
+			// // store page state.
+			// pageStateObj.putState(currQnStem,currModName,currModParams)
 			// execute 
 			youVote.execQn(currQnStem,currModName,currModParams,{});
 			paginator.setDom("page-run");
-			stdStreamObj.reset();
+			// interactManager.printClear();
 		},
-		execEdit:function(){
-			stdStreamObj.putJson();
-			if(currModName!=null){
-				stdStreamObj.putJson({"qnStem":currQnStem,"modName":currModName,"modParams":currModParams});
-			}
+		execEdit:function(qnStem,modName,modParams){
+			// stdStreamObj.putJson();
+			// if(currModName!=null){
+			// 	stdStreamObj.putJson({"qnStem":currQnStem,"modName":currModName,"modParams":currModParams});
+			// }
+
+			qnEditObj.putQnStem(qnStem)
+			qnEditObj.putModName(modName);
+			qnEditObj.putModParams(JSON.stringify(modParams));
+
 			paginator.setDom("page-edit");
 		}
 	}
@@ -116,10 +137,12 @@ function(webKernel,authKernel,stdStreamEngine,studentViewEngine,liteCtrlEngine,s
 	);
 
 	var currQnSpec=pageStateObj.getState();
-
-	qnEditObj.putQnStem(currQnSpec.qnStem)
-	qnEditObj.putModName(currQnSpec.modName);
-	qnEditObj.putModParams(JSON.stringify(currQnSpec.modParams));
-
+	// // initializing state.
+	// qnEditObj.putQnStem(currQnSpec.qnStem)
+	// qnEditObj.putModName(currQnSpec.modName);
+	// qnEditObj.putModParams(JSON.stringify(currQnSpec.modParams));
+	if(currQnSpec.modName!="null"){
+		interactManager.execEdit(currQnSpec.qnStem,currQnSpec.modName,currQnSpec.modParams);
+	}
 	interactManager.connect();
 })
