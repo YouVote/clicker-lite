@@ -60,6 +60,11 @@ function(webKernel,authKernel,stdStreamEngine,studentViewEngine,liteCtrlEngine,s
 				modParams:currModParams
 			}
 		},
+		putCurrSpec:function(newQnStem,newModName,newModParams){
+			currQnStem=newQnStem; 
+			currModName=newModName; 
+			currModParams=newModParams;
+		},
 
 		printClear:function(){
 			stdStreamObj.clear();
@@ -83,25 +88,12 @@ function(webKernel,authKernel,stdStreamEngine,studentViewEngine,liteCtrlEngine,s
 				paramString:qnEditObj.getModParams()
 			};
 		},
-		// pushEditErrMsg:function(errMsg){
-		// 	stdStreamObj.pushErrorMsg(errMsg);
-		// },
-		execRun:function(newQnStem,newModName,newModParams){
-			// used youVote, paginator, history, stdStreamObj
-			currQnStem=newQnStem; currModName=newModName; currModParams=newModParams;
-			// // store page state.
-			// pageStateObj.putState(currQnStem,currModName,currModParams)
-			// execute 
-			youVote.execQn(currQnStem,currModName,currModParams,{});
+		execRun:function(runQnStem,runModName,runModParams){
+			interactManager.putCurrSpec(runQnStem,runModName,runModParams);
+			youVote.execQn(runQnStem,runModName,runModParams,{});
 			paginator.setDom("page-run");
-			// interactManager.printClear();
 		},
 		execEdit:function(qnStem,modName,modParams){
-			// stdStreamObj.putJson();
-			// if(currModName!=null){
-			// 	stdStreamObj.putJson({"qnStem":currQnStem,"modName":currModName,"modParams":currModParams});
-			// }
-
 			qnEditObj.putQnStem(qnStem)
 			qnEditObj.putModName(modName);
 			qnEditObj.putModParams(JSON.stringify(modParams));
@@ -137,10 +129,6 @@ function(webKernel,authKernel,stdStreamEngine,studentViewEngine,liteCtrlEngine,s
 	);
 
 	var currQnSpec=pageStateObj.getState();
-	// // initializing state.
-	// qnEditObj.putQnStem(currQnSpec.qnStem)
-	// qnEditObj.putModName(currQnSpec.modName);
-	// qnEditObj.putModParams(JSON.stringify(currQnSpec.modParams));
 	if(currQnSpec.modName!="null"){
 		interactManager.execEdit(currQnSpec.qnStem,currQnSpec.modName,currQnSpec.modParams);
 	}

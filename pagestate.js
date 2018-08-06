@@ -18,11 +18,9 @@ define([],function(interactManager){
 						if("modParams" in getQnSpec)
 							getModParams=getQnSpec["modParams"];
 					}catch(e){
-						// stdStreamObj.pushErrorMsg("[parsing JSON] "+e);
 						interactManager.printErrMsg("[parsing JSON] "+e);
 					}
 				}catch(e){
-					// stdStreamObj.pushErrorMsg("[decoding URI] "+e);
 					interactManager.printErrMsg("[decoding URI] "+e);
 				}
 			}
