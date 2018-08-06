@@ -25,44 +25,44 @@ require(['jquery'],function(){
 	$('head').append('<link rel="stylesheet" type="text/css" href="lite.css">');
 })
 
-require(["webKernel","authKernel","stdstream","studentview","litectrl","socketinfo"],
-function(webKernel,authKernel,stdStreamEngine,studentViewEngine,liteCtrlEngine,socketInfoEngine){
+require(["webKernel","authKernel","stdstream","studentview","litectrl","socketinfo","pagestate"],
+function(webKernel,authKernel,stdStreamEngine,studentViewEngine,liteCtrlEngine,socketInfoEngine,pageStateEngine){
 	// the entire state of the question
 	var currQnStem=""; var currModName="null"; var currModParams="\"\"";
-	var studentViewObj, qnEditObj, stdStreamObj, liteCtrlObj, socketInfoObj;
+	var studentViewObj, qnEditObj, stdStreamObj, liteCtrlObj, socketInfoObj, pageStateObj;
 
-	var pageStateObj=new (function(){
-		this.getState=function(){
-			var url = new URL(location.href);
-			var qnSpecUriJson = url.searchParams.get("spec");
-			var getQnStem, getModName, getModParams;
-			// try to extract uridecode, json parse, qnStem, modName, modParams, fill in where successful.
-			if(qnSpecUriJson!=null){
-				try{
-					var jsonString=decodeURIComponent(qnSpecUriJson);
-					try{
-						var qnSpec=JSON.parse(jsonString);
-						if("qnStem" in qnSpec)
-							getQnStem=qnSpec["qnStem"];
-						if("modName" in qnSpec)
-							getModName=qnSpec["modName"];
-						if("modParams" in qnSpec)
-							getModParams=qnSpec["modParams"];
-					}catch(e){
-						stdStreamObj.pushErrorMsg("[parsing JSON] "+e);
-					}
-				}catch(e){
-					stdStreamObj.pushErrorMsg("[decoding URI] "+e);
-				}
-			}
-			// getQnSpec
-			return {"qnStem":getQnStem, "modName":getModName, "modParams":getModParams};
-		}
-		this.putState=function(putQnStem,putModName,putModParams){
-			var putQnSpec={"qnStem":putQnStem,"modName":putModName,"modParams":putModParams};
-			history.pushState({},"","index.html?spec="+encodeURIComponent(JSON.stringify(putQnSpec)));
-		}
-	})();
+	// var pageStateObj=new (function(){
+	// 	this.getState=function(){
+	// 		var url = new URL(location.href);
+	// 		var qnSpecUriJson = url.searchParams.get("spec");
+	// 		var getQnStem, getModName, getModParams;
+	// 		// try to extract uridecode, json parse, qnStem, modName, modParams, fill in where successful.
+	// 		if(qnSpecUriJson!=null){
+	// 			try{
+	// 				var jsonString=decodeURIComponent(qnSpecUriJson);
+	// 				try{
+	// 					var qnSpec=JSON.parse(jsonString);
+	// 					if("qnStem" in qnSpec)
+	// 						getQnStem=qnSpec["qnStem"];
+	// 					if("modName" in qnSpec)
+	// 						getModName=qnSpec["modName"];
+	// 					if("modParams" in qnSpec)
+	// 						getModParams=qnSpec["modParams"];
+	// 				}catch(e){
+	// 					stdStreamObj.pushErrorMsg("[parsing JSON] "+e);
+	// 				}
+	// 			}catch(e){
+	// 				stdStreamObj.pushErrorMsg("[decoding URI] "+e);
+	// 			}
+	// 		}
+	// 		// getQnSpec
+	// 		return {"qnStem":getQnStem, "modName":getModName, "modParams":getModParams};
+	// 	}
+	// 	this.putState=function(putQnStem,putModName,putModParams){
+	// 		var putQnSpec={"qnStem":putQnStem,"modName":putModName,"modParams":putModParams};
+	// 		history.pushState({},"","index.html?spec="+encodeURIComponent(JSON.stringify(putQnSpec)));
+	// 	}
+	// })();
 
 	var interactManager={
 		connect:function(){
@@ -90,7 +90,7 @@ function(webKernel,authKernel,stdStreamEngine,studentViewEngine,liteCtrlEngine,s
 
 		},
 		printErrMsg:function(err){
-
+			stdStreamObj.pushErrorMsg(err);
 		},
 		// called in liteCtrlObj
 		getQnSpec:function(){
@@ -142,6 +142,10 @@ function(webKernel,authKernel,stdStreamEngine,studentViewEngine,liteCtrlEngine,s
 	socketInfoObj=new socketInfoEngine(
 		interactManager,
 		document.getElementById("socket-info")
+	);
+
+	pageStateObj=new pageStateEngine(
+		interactManager
 	);
 
 	var currQnSpec=pageStateObj.getState();
