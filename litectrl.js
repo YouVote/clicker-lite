@@ -1,10 +1,9 @@
 define([],function(){
 	return function(interactManager,editBtn,runBtn){
-		// external dependencies youVote object, qnEditObj, paginator, history, stdStreamObj
 		runBtn.onclick=function(){
 			// prepare to run...  
 			// get existing params, check, halt and feedback if error. 
-			var newQnSpec=interactManager.getQnSpec();
+			var newQnSpec=interactManager.getEditQnSpec();
 			// todo: possibly more thorough check if mod exists,
 			// and validity of parameters with mod
 			try{

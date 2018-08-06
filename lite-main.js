@@ -28,8 +28,25 @@ require(['jquery'],function(){
 require(["webKernel","authKernel","stdstream","studentview","litectrl","socketinfo","pagestate"],
 function(webKernel,authKernel,stdStreamEngine,studentViewEngine,liteCtrlEngine,socketInfoEngine,pageStateEngine){
 	// the entire state of the question
-	var currQnStem=""; var currModName="null"; var currModParams="\"\"";
-	var studentViewObj, qnEditObj, stdStreamObj, liteCtrlObj, socketInfoObj, pageStateObj;
+	var currQnSpec=new (function(){
+		var qnSpec={qnStem:"", modName:"null", modParams:"\"\""};
+		this.set=function(name,value){
+			if(name in qnSpec){
+				qnSpec[name]=value;
+			}else{
+				console.warn(name+" is not a qnSpec key.");
+			}
+		}
+		this.get=function(name){
+			if(name in qnSpec){
+				return qnSpec[name];
+			}else{
+				console.warn(name+" is not a qnSpec key.");
+			}	
+		}
+	})();
+	// var currQnStem=""; var currModName="null"; var currModParams="\"\"";
+	var youVote, studentViewObj, qnEditObj, stdStreamObj, liteCtrlObj, socketInfoObj, pageStateObj;
 
 	var interactManager={
 		connect:function(){
@@ -55,15 +72,18 @@ function(webKernel,authKernel,stdStreamEngine,studentViewEngine,liteCtrlEngine,s
 
 		getCurrSpec:function(){
 			return {
-				qnStem:currQnStem,
-				modName:currModName,
-				modParams:currModParams
+				qnStem: 	currQnSpec.get("qnStem"),
+				modName: 	currQnSpec.get("modName"),
+				modParams: 	currQnSpec.get("modParams")
 			}
 		},
 		putCurrSpec:function(newQnStem,newModName,newModParams){
-			currQnStem=newQnStem; 
-			currModName=newModName; 
-			currModParams=newModParams;
+			// currQnStem=newQnStem; 
+			// currModName=newModName; 
+			// currModParams=newModParams;
+			currQnSpec.set("qnStem",newQnStem);
+			currQnSpec.set("modName",newModName);
+			currQnSpec.set("modParams",newModParams);
 		},
 
 		printClear:function(){
@@ -81,12 +101,17 @@ function(webKernel,authKernel,stdStreamEngine,studentViewEngine,liteCtrlEngine,s
 		},
 
 		// called in liteCtrlObj
-		getQnSpec:function(){
+		getEditQnSpec:function(){
 			return {
 				qnStem:qnEditObj.getQnStem(),
 				modName:qnEditObj.getModName(),
-				paramString:qnEditObj.getModParams()
+				paramString:qnEditObj.getModParams() // a little asymmetry here
 			};
+		},
+		putEditQnSpec:function(editQnStem,editModName,editModParams){
+			qnEditObj.putQnStem(editQnStem)
+			qnEditObj.putModName(editModName);
+			qnEditObj.putModParams(JSON.stringify(editModParams)); // a little asymmetry here
 		},
 		execRun:function(runQnStem,runModName,runModParams){
 			interactManager.putCurrSpec(runQnStem,runModName,runModParams);
@@ -94,13 +119,11 @@ function(webKernel,authKernel,stdStreamEngine,studentViewEngine,liteCtrlEngine,s
 			paginator.setDom("page-run");
 		},
 		execEdit:function(qnStem,modName,modParams){
-			qnEditObj.putQnStem(qnStem)
-			qnEditObj.putModName(modName);
-			qnEditObj.putModParams(JSON.stringify(modParams));
-
+			interactManager.putEditQnSpec(qnStem,modName,modParams);
 			paginator.setDom("page-edit");
 		}
 	}
+
 	studentViewObj=new studentViewEngine(
 		document.getElementById("student-box")
 	);
@@ -123,14 +146,14 @@ function(webKernel,authKernel,stdStreamEngine,studentViewEngine,liteCtrlEngine,s
 		interactManager,
 		document.getElementById("socket-info")
 	);
-
 	pageStateObj=new pageStateEngine(
 		interactManager
 	);
 
-	var currQnSpec=pageStateObj.getState();
-	if(currQnSpec.modName!="null"){
-		interactManager.execEdit(currQnSpec.qnStem,currQnSpec.modName,currQnSpec.modParams);
-	}
+	// initialize
 	interactManager.connect();
+	var urlQnSpec=pageStateObj.getState();
+	if(urlQnSpec.modName!="null"){
+		interactManager.execRun(urlQnSpec.qnStem,urlQnSpec.modName,urlQnSpec.modParams);
+	}
 })
