@@ -46,7 +46,7 @@ function(webKernel,authKernel,stdStreamEngine,studentViewEngine,liteCtrlEngine,s
 			}	
 		}
 	})();
-	// var currQnStem=""; var currModName="null"; var currModParams="\"\"";
+
 	var youVote, studentViewObj, qnEditObj, stdStreamObj, liteCtrlObj, socketInfoObj, pageStateObj;
 
 	var interactManager={
@@ -117,6 +117,9 @@ function(webKernel,authKernel,stdStreamEngine,studentViewEngine,liteCtrlEngine,s
 			};
 		},
 		putEditQnSpec:function(editQnStem,editModName,editModParams){
+			// asymmetry due to the fact that qnStem and modName are always strings,
+			// but modParams is an object. 
+			// qnStem could be an object in future, so this pattern will have to be updated. 
 			qnEditObj.putQnStem(editQnStem)
 			qnEditObj.putModName(editModName);
 			qnEditObj.putModParams(JSON.stringify(editModParams)); // a little asymmetry here
@@ -158,12 +161,5 @@ function(webKernel,authKernel,stdStreamEngine,studentViewEngine,liteCtrlEngine,s
 		interactManager
 	);
 
-	// // initialize
-	// interactManager.connect();
-	// // var urlQnSpec=urlStateObj.getState();
-	// var urlQnSpec=interactManager.pullUrlState();
-	// if(urlQnSpec.modName!="null"){
-	// 	interactManager.execRun(urlQnSpec.qnStem,urlQnSpec.modName,urlQnSpec.modParams);
-	// }
 	interactManager.init();
 })
