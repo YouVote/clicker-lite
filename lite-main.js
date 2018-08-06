@@ -25,7 +25,6 @@ require(['jquery'],function(){
 	$('head').append('<link rel="stylesheet" type="text/css" href="lite.css">');
 })
 
-// require(["webKernel","qneditor","stdstream","studentview"],
 require(["webKernel","authKernel","stdstream","studentview","litectrl","socketinfo"],
 function(webKernel,authKernel,stdStreamEngine,studentViewEngine,liteCtrlEngine,socketInfoEngine){
 	// the entire state of the question
@@ -49,13 +48,6 @@ function(webKernel,authKernel,stdStreamEngine,studentViewEngine,liteCtrlEngine,s
 							getModName=qnSpec["modName"];
 						if("modParams" in qnSpec)
 							getModParams=qnSpec["modParams"];
-
-						// // push into qnEditObj
-						// qnEditObj.putQnStem(qnStem)
-						// qnEditObj.putModName(modName);
-						// qnEditObj.putModParams(JSON.stringify(modParams));
-						// // perhaps automatically run here. 
-						// stdStreamObj.putJson(qnSpec);
 					}catch(e){
 						stdStreamObj.pushErrorMsg("[parsing JSON] "+e);
 					}
@@ -68,7 +60,7 @@ function(webKernel,authKernel,stdStreamEngine,studentViewEngine,liteCtrlEngine,s
 		}
 		this.putState=function(putQnStem,putModName,putModParams){
 			var putQnSpec={"qnStem":putQnStem,"modName":putModName,"modParams":putModParams};
-			history.pushState({},"", "index.html?spec="+encodeURIComponent(JSON.stringify(putQnSpec)));
+			history.pushState({},"","index.html?spec="+encodeURIComponent(JSON.stringify(putQnSpec)));
 		}
 	})();
 
@@ -93,6 +85,13 @@ function(webKernel,authKernel,stdStreamEngine,studentViewEngine,liteCtrlEngine,s
 		connectFail:function(err){
 			socketInfoObj.fail(err);
 		},
+
+		printJsonStr:function(str){
+
+		},
+		printErrMsg:function(err){
+
+		},
 		// called in liteCtrlObj
 		getQnSpec:function(){
 			return {
@@ -108,8 +107,6 @@ function(webKernel,authKernel,stdStreamEngine,studentViewEngine,liteCtrlEngine,s
 			// used youVote, paginator, history, stdStreamObj
 			currQnStem=newQnStem; currModName=newModName; currModParams=newModParams;
 			// store page state.
-			// var qnSpec={"qnStem":currQnStem,"modName":currModName,"modParams":currModParams};
-			// history.pushState({},"", "index.html?spec="+encodeURIComponent(JSON.stringify(qnSpec)));
 			pageStateObj.putState({"qnStem":currQnStem,"modName":currModName,"modParams":currModParams})
 			// execute 
 			youVote.execQn(currQnStem,currModName,currModParams,{});
@@ -146,36 +143,6 @@ function(webKernel,authKernel,stdStreamEngine,studentViewEngine,liteCtrlEngine,s
 		interactManager,
 		document.getElementById("socket-info")
 	);
-	
-	// // get page state, and initialize page based on the state.   
-	// var url = new URL(location.href);
-	// var qnSpecUriJson = url.searchParams.get("spec");
-	// // try to extract uridecode, json parse, qnStem, modName, modParams, fill in where successful.
-	// if(qnSpecUriJson!=null){
-	// 	try{
-	// 		var jsonString=decodeURIComponent(qnSpecUriJson);
-	// 		try{
-	// 			var qnSpec=JSON.parse(jsonString);
-	// 			if("qnStem" in qnSpec)
-	// 				qnStem=qnSpec["qnStem"];
-	// 			if("modName" in qnSpec)
-	// 				modName=qnSpec["modName"];
-	// 			if("modParams" in qnSpec)
-	// 				modParams=qnSpec["modParams"];
-
-	// 			// push into qnEditObj
-	// 			qnEditObj.putQnStem(qnStem)
-	// 			qnEditObj.putModName(modName);
-	// 			qnEditObj.putModParams(JSON.stringify(modParams));
-	// 			// perhaps automatically run here. 
-	// 			stdStreamObj.putJson(qnSpec);
-	// 		}catch(e){
-	// 			stdStreamObj.pushErrorMsg("[parsing JSON] "+e);
-	// 		}
-	// 	}catch(e){
-	// 		stdStreamObj.pushErrorMsg("[decoding URI] "+e);
-	// 	}
-	// }
 
 	var currQnSpec=pageStateObj.getState();
 
